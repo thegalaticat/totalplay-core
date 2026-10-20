@@ -5,22 +5,17 @@ Add-Type -AssemblyName System.Drawing
 $SupabaseUrl = "https://frtbijfiigifncnlkqqy.supabase.co/rest/v1/licencias"
 $SupabaseKey = "sb_publishable_9MfTGldlzk9yBzgA4rTe-A_J6uFENTy"
 
-function Verificar-LicenciaNube([string]$licenciaIngresada) {
-    $urlApi = "$SupabaseUrl?clave_licencia=eq.$licenciaIngresada&select=*"
+function Verificar-LicenciaNube([string]$licenciaIngresada) {$urlApi = "$SupabaseUrl?clave_licencia=eq.$licenciaIngresada&select=*"
     $headers = @{
         "apikey" = $SupabaseKey
         "Authorization" = "Bearer $SupabaseKey"
     }
 
     try {
-        $respuesta = Invoke-RestMethod -Uri $urlApi -Headers $headers -Method Get
-        if ($respuesta) {
-            $reg = if ($respuesta -is [array]) { $respuesta[0] } else { $respuesta }
-            
-            $fechaExpiracion = [DateTime]$reg.fecha_expiracion
-            $fechaActual = Get-Date
+        $respuesta = Invoke-RestMethod -Uri $urlApi -Headers$headers -Method Get
+        if ($respuesta) {$reg = if ($respuesta -is [array]) {$respuesta[0] } else { $respuesta }$fechaExpiracion = [DateTime]$reg.fecha_expiracion$fechaActual = Get-Date
 
-            if ($reg.activa -eq $true -and $fechaActual -lt $fechaExpiracion) {
+            if ($reg.activa -eq$true -and $fechaActual -lt$fechaExpiracion) {
                 return $true
             } else {
                 [System.Windows.Forms.MessageBox]::Show("Tu licencia ha expirado o fue desactivada.", "Expirado", 0, 48)
@@ -34,53 +29,177 @@ function Verificar-LicenciaNube([string]$licenciaIngresada) {
     return $false
 }
 
-# Ventana de Login
+# ================= VENTANA DE LOGIN =================
 $formLogin = New-Object System.Windows.Forms.Form
 $formLogin.Text = "Licencia - TotalPlay"
-$formLogin.Size = New-Object System.Drawing.Size(320, 180)
-$formLogin.StartPosition = "CenterScreen"
+$formLogin.Size = New-Object System.Drawing.Size(320, 180)$formLogin.StartPosition = "CenterScreen"
 $formLogin.BackColor = "#121212"
 $formLogin.ForeColor = "#ffffff"
 $formLogin.FormBorderStyle = "FixedDialog"
-$formLogin.MaximizeBox = $false
+$formLogin.MaximizeBox =$false
 
 $lblLic = New-Object System.Windows.Forms.Label
 $lblLic.Text = "Ingresa tu Clave de Licencia:"
 $lblLic.Location = New-Object System.Drawing.Point(20, 20)
-$lblLic.AutoSize = $true
+$lblLic.AutoSize =$true
 
 $txtLic = New-Object System.Windows.Forms.TextBox
-$txtLic.Location = New-Object System.Drawing.Point(20, 45)
-$txtLic.Size = New-Object System.Drawing.Size(260, 25)
+$txtLic.Location = New-Object System.Drawing.Point(20, 45)$txtLic.Size = New-Object System.Drawing.Size(260, 25)
 
 $btnEntrar = New-Object System.Windows.Forms.Button
 $btnEntrar.Text = "Verificar Licencia"
 $btnEntrar.Location = New-Object System.Drawing.Point(20, 80)
-$btnEntrar.Size = New-Object System.Drawing.Size(260, 35)
-$btnEntrar.BackColor = "#00b3b3"
+$btnEntrar.Size = New-Object System.Drawing.Size(260, 35)$btnEntrar.BackColor = "#00b3b3"
 $btnEntrar.FlatStyle = "Flat"
 
-$accesoConcedido = $false
-$btnEntrar.Add_Click({
-    $intento = $txtLic.Text.Trim()
+$accesoConcedido = $false$btnEntrar.Add_Click({
+    $intento =$txtLic.Text.Trim()
     if (-not [string]::IsNullOrWhiteSpace($intento)) {
-        if (Verificar-LicenciaNube $intento) {
-            $script:accesoConcedido = $true
-            $formLogin.Close()
+        if (Verificar-LicenciaNube $intento) {$script:accesoConcedido = $true$formLogin.Close()
         }
     } else {
         [System.Windows.Forms.MessageBox]::Show("Escribe una licencia.", "Aviso", 0, 48)
     }
 })
 
-$formLogin.Controls.AddRange(@($lblLic, $txtLic, $btnEntrar))
-$formLogin.ShowDialog() | Out-Null
+$formLogin.Controls.AddRange(@($lblLic,$txtLic, $btnEntrar))$formLogin.ShowDialog() | Out-Null
 
 if (-not $accesoConcedido) { exit }
 
-# Código Base64 de tu menú principal (totalpáss.txt)
-$base64Menu = "JEFyY2hpdm9FbmMgPSAiJGVudjpBUFBEYVRBXHBvcnRhbF90cF91cmwuZW5jIgpAZ2xvYmFsOkpvYlBpbmcgPSAkbnVsbAoKZnVuY3Rpb24gTW9zdHJhci1CYW5uZXIgewogICAgQ2xlYXItSG9zdAogICAgV3JpdGUtSG9zdCBAIgogICBfX19fICBfX19fICBfX19fXyBfX19fX18gICBfX18gX19fICAgICAgX19fIF9fXyAgICBfX18gIF9fX18gICBfXyBfXyAKICAvICAgIHwvICAgIHx8ICAgICB8ICAgICAgfCAvICBfXSAgIFwgICAgfCAgIHwgICB8ICAvICBfXXwgICAgXCB8ICB8ICB8CiB8ICBvICB8ICBvICB8fCAgIF9ffCAgICAgIHwvICBbX3wgICAgXCAgIHwgXyAgIF8gfCAvICBbXyB8ICBfICB8fCAgfCAgfAogfCAgICAgfCAgICAgfHwgIHxfIHxffCAgfF98fCAgICBfXSAgRCAgfCB8ICBcXy8gIHx8ICAgIF9dfCAgfCAgfHwgIHwgIHwKIHwgIF8gIHwgIF8gIHx8ICAgX10gIHwgIHwgIHwgICBbX3wgICAgIHwgfCAgIHwgICB8fCAgIFtfIHwgIHwgIHx8ICA6ICB8CiB8ICB8ICB8ICB8ICB8fCAgfCAgICB8ICB8ICB8ICAgICB8ICAgICB8IHwgICB8ICAgfHwgICAgIHx8ICB8ICB8fCAgICAgfAogfF9ffF9ffF9ffF9ffHxfX3wgICAgfF9ffCAgfF9fX19ffF9fX19ffCB8X19ffF9ffCBcX18sX3wKICAgICAgICAgICAgICAgICAgL1xfX19fXy9cICAgWyBUT1RBTFBMQVkgQVVUTyBQSU5HIF0KICAgICAgICAgICAgICAgICAvICBvICAgbyAgXCAgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICAgICAgICAgICAgICAgICggPT0gIF4gID09ICkgIDEuIEluaWNpYXIgLyBDb25maWd1cmFyIEF1dG8gUGluZwogICAgICAgICAgICAgICAgICkgICAgICAgICAoICAgMi4gRXhpdCAoU2FsaXIpCiAgICAgICAgICAgICAgICAoICAgICAgICAgICApCiAgICAgICAgICAgICAgICggKCAgKSAgICggICkgKQogICAgICAgICAgICAgIChfXyhfXylfX18oX18pX18pCiJATC1Gb3JlZ3JvdW5kQ29sb3IgQ3lhbgogICAgV3JpdGUtSG9zdCAiPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09IiAtRm9yZWdyb3VuZENvbG9yIERhcmtHcmF5Cn0KCmZ1bmN0aW9uIEd1YXJkYXItVXJsQ2lmcmFkYSB7CiAgICBwYXJhbShbc3RyaW5nXSR1cmxUZXh0bykKICAgICRieXRlcyA9IFtTeXN0ZW0uVGV4dC5FbmNvZGluZ106OlVURjguR2V0Qnl0ZXMoJHVybFRleHRvLlRyaW0oKSkKICAgICRlbmNvZGVkID0gW0NvbnZlcnRdOjpUb0Jhc2U2NFN0cmluZygkYnl0ZXMpCiAgICBTZXQtQ29udGVudCAtUGF0aCAkQXJjaGl2b0VuYyAtVmFsdWUgJGVuY29kZWQgLUZvcmNlCn0KCmZ1bmN0aW9uIExlZXItVXJsQ2lmcmFkYSB7CiAgICBpZiAoVGVzdC1QYXRoICRBcmNoaXZvRW5jKSB7CiAgICAgICAgdHJ5IHsKICAgICAgICAgICAgJGVuY29kZWQgPSBHZXQtQ29udGVudCAtUGF0aCAkQXJjaGl2b0VuYyAtRXJyb3JBY3Rpb24gU3RvcAogICAgICAgICAgICAkYnl0ZXMgPSBbQ29udmVydF06OkZyb21CYXNlNjRTdHJpbmcoJGVuY29kZWQpCiAgICAgICAgICAgIHJldHVybiBbU3lzdGVtLlRleHQuRW5jb2RpbmddOjpVVEY4LkdldFN0cmluZygkYnl0ZXMpCiAgICAgICAgfSBjYXRjaCB7CiAgICAgICAgICAgIHJldHVybiAkbnVsbAogICAgICAg fQogICAgfQogICAgcmV0dXJuICRudWxsCn0KCmZ1bmN0aW9uIE1lbnUtVG90YWxQbGF5IHsKICAgIENsZWFyLUhvc3QKICAgIFdyaXRlLUhvc3QgIj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09IiAtRm9yZWdyb3VuZENvbG9yIEN5YW4KICAgIFdyaXRlLUhvc3QgIiAgICAgICAgICBBVVRPIFBJTkcgVE9UQUxQTEFZIChCQVNFNjQgTkFUSVZPKSAJICAgICAgICAgICIgLUZvcmVncm91bmRDb2xvciBDeWFuCiAgICBXcml0ZS1Ib3N0ICI9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09IiAtRm9yZWdyb3VuZENvbG9yIEN5YW4KCiAgICAkdXJsUHJldmlhID0gTGVlci1VcmxDaWZyYWRhCiAgICAkdXJsRmluYWwgPSAiIgoKICAgIGlmICgkdXJsUHJldmlhKSB7CiAgICAgICAgV3JpdGUtSG9zdCAiYG5bK10gU2UgZGV0ZWN0w7MgdW5hIFVSTCBndWFyZGFkYSBwcmV2aWFtZW50ZS4iIC1Gb3JlZ3JvdW5kQ29sb3IgR3JlZW4KICAgICAgICAkcmVzcCA9IFJlYWQtSG9zdCAiwr9EZXNlYXMgdXNhciBsYSBVUkwgZ3VhcmRhZGE/IChFbnRlciA9IFPDrSAvIE4gPSBQZWdhciBudWV2YSBVUkwpIgogICAgICAgIGlmICgkcmVzcCAtbWF0Y2ggIl5bbk5dIikgewogICAgICAgICAgICAkdXJsRmluYWwgPSBSZWFkLUhvc3QgIlBlZ2EgYXF1w60gbGEgVVJMIGNvbXBsZXRhIGRlbCBwb3J0YWwiCiAgICAgICAgICAgIGlmICgtbm90IFtzdHJpbmddOjpJc051bGxPcldoaXRlU3BhY2UoJHVybEZpbmFsKSkgewogICAgICAgICAgICAgICAgR3VhcmRhci1VcmxDaWZyYWRhIC11cmxUZXh0byAkdXJsRmluYWwKICAgICAgICAgICAgfQogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgICR1cmxGaW5hbCA9ICR1cmxQcmV2aWEKICAgICAgICB9CiAgICB9IGVsc2UgewogICAgICAgICR1cmxGaW5hbCA9IFJlYWQtSG9zdCAiYG5QZWdhIGFxdcOtIGxhIFVSTCBjb21wbGV0YSBkZWwgcG9ydGFsIgogICAgICAgIGlmICgtbm90IFtzdHJpbmddOjpJc051bGxPcldoaXRlU3BhY2UoJHVybEZpbmFsKSkgewogICAgICAgICAgICBHdWFyZGFyLVVybENpZnJhZGEgLXVybFRleHRvICR1cmxGaW5hbAogICAgICAg fQogICAgfQoKICAgIGlmICg9W3N0cmluZ106OklzTnVsbE9yV2hpdGVTcGFjZSgkdXJsRmluYWwpKSB7CiAgICAgICAgV3JpdGUtSG9zdCAiWyFdIE5vIHNlIGluZ3Jlc8OzIG5pbmd1bmEgVVJMIHbDoWxpZGEuIFJlZ3Jlc2FuZG8gYWwgbWVuw7ouLi4iIC1Gb3JlZ3JvdW5kQ29sb3IgUmVkCiAgICAgICAgU3RhcnQtU2xlZXAgLVNlY29uZHMgMgogICAgICAgIHJldHVybgogICAgfQoKICAgIFdyaXRlLUhvc3QgImBuU2VsZWNjaW9uYSBjw7NtbyBxdWllcmVzIGVqZWN1dGFyIGVsIEF1dG8gUGluZzoiIC1Gb3JlZ3JvdW5kQ29sb3IgWWVsbG93CiAgICBXcml0ZS1Ib3N0ICIgIFsxXSBFbiBwYW50YWxsYSAoVmVyIGNvbnNvbGEgZGljaWVuZG8gJ0FjdGl2bycgY2FkYSBzZWd1bmRvOyBwcmVzaW9uYSAnUScgcGFyYSB2b2x2ZXIgYWwgbWVuw7opIgogICAgV3JpdGUtSG9zdCAiICBbMl0gRW4gc2VndW5kbyBwbGFubyAoU2lndWUgY29ycmllbmRvIG1pZW50cmFzIHVzYXMgZWwgbWVuw7opIgogICAgJG1vZG8gPSBSZWFkLUhvc3QgIkVsaWdlICgxIG8gMikiCgogICAgaWYgKCRtb2RvIC1lcSAiMiIpIHsKICAgICAgICBpZiAoJGdsb2JhbDpKb2JQaW5nKSB7IFN0b3AtSm9iICRnbG9iYWw6Sm9iUGluZyAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZTsgUmVtb3ZlLUpvYiAkZ2xvYmFsOkpvYlBpbmcgLUZvcmNlIC1FcnJvckFjdGlvbiBTaWxlbnRseUNvbnRpbnVlIH0KICAgICAgICAkZ2xvYmFsOkpvYlBpbmcgPSBTdGFydC1Kb2IgLVNjcmlwdEJsb2NrIHsKICAgICAgICAgICAgcGFyYW0oJHUpCiAgICAgICAgICAgIHdoaWxlICgkdHJ1ZSkgewogICAgICAgICAgICAgICAgdHJ5IHsgSW52b2tlLVdlYlJlcXVlc3QgLVVyaSAkdSAtVXNlQmFzaWNQYXJzaW5nIC1UaW1lb3V0U2VjIDMgfCBPdXQtTnVsbCB9IGNhdGNoIHt9CiAgICAgICAgICAgICAgICBTdGFydC1TbGVlcCAtU2Vjb25kcyAxCiAgICAgICAgICAgIH0KICAgICAgICB9IC1Bcmd1bWVudExpc3QgJHVybEZpbmFsCiAgICAgICAgV3JpdGUtSG9zdCAiYG5bK10gQXV0byBQaW5nIGNvcnJpZW5kbyBlbiBzZWd1bmRvIHBsYW5vLiIgLUZvcmVncm91bmRDb2xvciBHcmVlbgogICAgICAgIFN0YXJ0LVNsZWVwIC1TZWNvbmRzIDIKICAg fSBlbHNlIHsKICAgICAgICBXcml0ZS1SG9zdCAiYG4tLS0gQ29uc29sYSBMaW1waWEgKFByZXNpb25hIGxhIHRlY2xhICdRJyBwYXJhIGRldGVuZXIgeSB2b2x2ZXIgYWwgbWVuw7opIC0tLSIgLUZvcmVncm91bmRDb2xvciBDeWFuCiAgICAgICAgd2hpbGUgKCR0cnVlKSB7CiAgICAgICAgICAgIGlmIChbQ29uc29sZV06OktleUF2YWlsYWJsZSkgewogICAgICAgICAgICAgICAgJHRlY2xhID0gW0NvbnNvbGVdOjpSZWFkS2V5KCR0cnVlKQogICAgICAgICAgICAgICAgaWYgKCR0ZWNsYS5LZXkgLWVxICJRIiAtb3IgJHRlY2xhLktleUNoYXIgLWVxICdxJykgewogICAgICAgICAgICAgICAgICAgIFdyaXRlLUhvc3QgImBuWyFdIEF1dG8gUGluZyBkZXRlbmlkby4gUmVncmVzYW5kbyBhbCBtZW7úLi4uIiAtRm9yZWdyb3VuZENvbG9yIFllbGxvdwogICAgICAgICAgICAgICAgICAgIGJyZWFrCiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICAgICAgdHJ5IHsKICAgICAgICAgICAgICAgIEludm9rZS1XZWJSZXF1ZXN0IC1VcmkgJHVybEZpbmFsIC1Vc2VCYXNpY1BhcnNpbmcgLVRpbWVvdXRTZWMgMyAtRXJyb3JBY3Rpb24gU3RvcCB8IE91dC1OdWxsCiAgICAgICAgICAgICAgICBXcml0ZS1Ib3N0ICJBY3Rpdm8iIC1Gb3JlZ3JvdW5kQ29sb3IgR3JlZW4KICAgICAgICAgICAgfSBjYXRjaCB7fQogICAgICAgICAgICBTdGFydC1TbGVlcCAtU2Vjb25kcyAxCiAgICAgICAgfQogICAgICAgIFN0YXJ0LVNsZWVwIC1TZWNvbmRzIDEKICAgIH0KfQoKZG8gewogICAgTW9zdHJhci1CYW5uZXIKICAgIGlmICgkZ2xvYmFsOkpvYlBpbmcgLWFuZCAkZ2xvYmFsOkpvYlBpbmcuU3RhdGUgLWVxICJSdW5uaW5nIikgewogICAgICAgIFdyaXRlLUhvc3QgIiBbRXN0YWRvIFRvdGFsUGxheTogQUNUSVZPIEVOIFNFU1VORE8gUExBTk9dIiAtRm9yZWdyb3VuZENvbG9yIEdyZWVuCiAgICB9CiAgICAkb3BjaW9uID0gUmVhZC1Ib3N0ICJgblNlbGVjY2lvbmEgdW5hIG9wY2nDs24gKDEtMikiCgogICAgc3dpdGNoICgkb3BjaW9uKSB7CiAgICAgICAgIjEiIHsgTWVudS1Ub3RhbFBsYXkgfQogICAgICAgICIyIiB7CiAgICAgICAgICAgIGlmICgkZ2xvYmFsOkpvYlBpbmcpIHsKICAgICAgICAgICAgICAgIFN0b3AtSm9iICRnbG9iYWw6Sm9iUGluZyAtRXJyb3JBY3Rpb24gU2lsZW50bHlDb250aW51ZQogICAgICAgICAgICAgICAgUmVtb3ZlLUpvYiAkZ2xvYmFsOkpvYlBpbmcgLUZvcmNlIC1FcnJvckFjdGlvbiBTaWxlbnRseUNvbnRpbnVlCiAgICAgICAgICAgIH0KICAgICAgICAgICAgV3JpdGUtSG9zdCAiYG5TYWxpZW5kbyBkZWwgcGFuZWwuLi4gwqFIYXN0YSBsuyVnbyEiIC1Gb3JlZ3JvdW5kQ29sb3IgQ3lhbgogICAgICAgICAgICBTdGFydC1TbGVlcCAtU2Vjb25kcyAxCiAgICAgICAgICAgIGJyZWFrCiAgICAgICAgfQogICAgICAgIGRlZmF1bHQgewogICAgSwgV3JpdGUtSG9zdCAiT3BjacOzbiBubyB2w6FsaWRhLCBlbGlnZSAxIG8gMi4iIC1Gb3JlZ3JvdW5kQ29sb3IgUmVkCiAgICAgICAgICAgIFN0YXJ0LVNsZWVwIC1TZWNvbmRzIDEsIGJyZWFrCiAgICAgICAgfQogICAgfQp9IHdoaWxlICgkb3BjaW9uIC1uZSAiMiIp"
+# ================= PANEL PRINCIPAL DE AUTO PING =================
+$ArchivoEnc = "$env:APPDATA\portal_tp_url.enc"
+$global:JobPing =$null
 
-# Decodifica y ejecuta el menú principal automáticamente tras pasar el login
-$codigoDescodificado = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($base64Menu))
-Invoke-Expression $codigoDescodificado
+function Mostrar-Banner {
+    Clear-Host
+    Write-Host @"
+    ____  ____  _____ ______   ___ ___     ___ ___   ___  ____   __ __ 
+  /    |/    ||     |      | / _]   \   |   |   | /  _]|    \ |  |  |
+ |  o  |  o  ||  __|      |/ [_|   /   | _   _ | /  [_ |  _  ||  |  |
+ |     |     ||  |_ |_|  |_||   _]  D  | |   \_/ ||   _]|  |  ||  |  |
+ |  _  |  _  ||  _]  |  |  |   [_|   _| |   |   ||   [_ |  |  ||  :  |
+ |  |  |  |  ||  |    |  |  |     |   _| |   |   ||      ||  |  ||     |
+ |__|__|__|__||__|    |__|  |_____|_____| |___|___||_____||__|__|\__,_|
+               /\____/\   [ TOTALPLAY AUTO PING ]
+              /  o   o  \  -----------------------
+             ( ==  ^  == )  1. Iniciar / Configurar Auto Ping
+              )       (     2. Exit (Salir)
+             (         )
+            ( (  )   (  ) )
+           (__(__)___(__)__)
+"@ -ForegroundColor Cyan
+    Write-Host "========================================================================" -ForegroundColor DarkGray
+}
+
+function Guardar-UrlCifrada {
+    param([string]$urlTexto)
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($urlTexto.Trim())
+    $encoded = [Convert]::ToBase64String($bytes)
+    Set-Content -Path $ArchivoEnc -Value$encoded -Force
+}
+
+function Leer-UrlCifrada {
+    if (Test-Path $ArchivoEnc) {
+        try {
+            $encoded = Get-Content -Path$ArchivoEnc -ErrorAction Stop
+            $bytes = [Convert]::FromBase64String($encoded)
+            return [System.Text.Encoding]::UTF8.GetString($bytes)
+        } catch {
+            return $null
+        }
+    }
+    return $null
+}
+
+function Menu-TotalPlay {
+    Clear-Host
+    Write-Host "==========================================================" -ForegroundColor Cyan
+    Write-Host "         AUTO PING TOTALPLAY (LICENCIADO)                 " -ForegroundColor Cyan
+    Write-Host "==========================================================" -ForegroundColor Cyan
+
+    $urlPrevia = Leer-UrlCifrada$urlFinal = ""
+
+    if ($urlPrevia) {
+        Write-Host "`n[+] Se detectó una URL guardada previamente." -ForegroundColor Green
+        $resp = Read-Host "¿Deseas usar la URL guardada? (Enter = Sí / N = Pegar nueva URL)"
+        if ($resp -match "^[nN]") {
+            $urlFinal = Read-Host "Pega aquí la URL completa del portal"
+            if (-not [string]::IsNullOrWhiteSpace($urlFinal)) {
+                Guardar-UrlCifrada -urlTexto $urlFinal
+            }
+        } else {
+            $urlFinal = $urlPrevia
+        }
+    } else {
+        $urlFinal = Read-Host "`nPega aquí la URL completa del portal"
+        if (-not [string]::IsNullOrWhiteSpace($urlFinal)) {
+            Guardar-UrlCifrada -urlTexto $urlFinal
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($urlFinal)) {
+        Write-Host "[!] No se ingresó ninguna URL válida. Regresando al menú..." -ForegroundColor Red
+        Start-Sleep -Seconds 2
+        return
+    }
+
+    Write-Host "`nSelecciona cómo quieres ejecutar el Auto Ping:" -ForegroundColor Yellow
+    Write-Host "  [1] En pantalla (Ver consola diciendo 'Activo' cada segundo; presiona 'Q' para volver al menú)"
+    Write-Host "  [2] En segundo plano (Sigue corriendo mientras usas el menú)"
+    $modo = Read-Host "Elige (1 o 2)"
+
+    if ($modo -eq "2") {
+        if ($global:JobPing) { Stop-Job $global:JobPing -ErrorAction SilentlyContinue; Remove-Job $global:JobPing -Force -ErrorAction SilentlyContinue }
+        $global:JobPing = Start-Job -ScriptBlock {
+            param($u)
+            while ($true) {
+                try { Invoke-WebRequest -Uri $u -UseBasicParsing -TimeoutSec 3 | Out-Null } catch {}
+                Start-Sleep -Seconds 1
+            }
+        } -ArgumentList $urlFinal
+        Write-Host "`n[+] Auto Ping corriendo en segundo plano." -ForegroundColor Green
+        Start-Sleep -Seconds 2
+    } else {
+        Write-Host "`n--- Consola Limpia (Presiona la tecla 'Q' para detener y volver al menú) ---" -ForegroundColor Cyan
+        while ($true) {
+            if ([Console]::KeyAvailable) {
+                $tecla = [Console]::ReadKey($true)
+                if ($tecla.Key -eq "Q" -or $tecla.KeyChar -eq 'q') {
+                    Write-Host "`n[!] Auto Ping detenido. Regresando al menú..." -ForegroundColor Yellow
+                    break
+                }
+            }
+            try {
+                Invoke-WebRequest -Uri $urlFinal -UseBasicParsing -TimeoutSec 3 -ErrorAction Stop | Out-Null
+                Write-Host "Activo" -ForegroundColor Green
+            } catch {}
+            Start-Sleep -Seconds 1
+        }
+        Start-Sleep -Seconds 1
+    }
+}
+
+do {
+    Mostrar-Banner
+    if ($global:JobPing -and$global:JobPing.State -eq "Running") {
+        Write-Host " [Estado TotalPlay: ACTIVO EN SEGUNDO PLANO]" -ForegroundColor Green
+    }
+    $opcion = Read-Host "`nSelecciona una opción (1-2)"
+
+    switch ($opcion) {
+        "1" { Menu-TotalPlay }
+        "2" {
+            if ($global:JobPing) {
+                Stop-Job $global:JobPing -ErrorAction SilentlyContinue
+                Remove-Job $global:JobPing -Force -ErrorAction SilentlyContinue
+            }
+            Write-Host "`nSaliendo del panel... ¡Hasta luego!" -ForegroundColor Cyan
+            Start-Sleep -Seconds 1
+            break
+        }
+        default {
+            Write-Host "Opción no válida, elige 1 o 2." -ForegroundColor Red
+            Start-Sleep -Seconds 1
+        }
+    }
+} while ($opcion -ne "2")
